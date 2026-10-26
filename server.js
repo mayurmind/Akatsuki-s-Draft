@@ -23,6 +23,12 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+// Ensure DB is connected for serverless environments
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 // Health check
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -50,8 +56,11 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 module.exports = app;
+
